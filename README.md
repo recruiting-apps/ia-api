@@ -7,7 +7,7 @@ Este README proporciona instrucciones para configurar un entorno de desarrollo c
 1. Clona el repositorio en tu máquina local:
 
   ```bash
-  git clone https://github.com/tu-usuario/tu-repositorio.git
+  git clone https://github.com/recruiting-apps/ia-api.git
   ```
 
 2. Navega al directorio del proyecto:
