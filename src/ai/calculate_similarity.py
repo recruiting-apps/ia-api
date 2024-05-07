@@ -16,4 +16,5 @@ def calculate_similarity(tfidf_skills, tfidf_cvs):
     for idx in indices_sorted:
         print(f"CV {idx + 1}: Similarity = {similarities[idx]}")
 
-    return similarities, indices_sorted
+    # return similarities, indices_sorted
+    return [], []

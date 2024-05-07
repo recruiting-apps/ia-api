@@ -3,6 +3,4 @@ import os
 
 load_dotenv()
 
-PORT = os.environ.get('PORT')
-
-
+PORT = int(os.environ.get('PORT') or 3000)

@@ -136,8 +136,6 @@ def get_content(path):
     result,doc,spans = get_pdfs(path)
     all_skills, all_other_skills = outoffile()
 
-    print(result)
-
     # Obtener sus cabeceras reales
     pdf_real_headers = real_headers(result[0],all_skills,all_other_skills)
     index=indices(spans[0], pdf_real_headers)
