@@ -21,10 +21,11 @@ def helloWorld():
 @app.route('/find-better-applicant', methods=['POST'])
 def index():
     request_data = request.get_json()
+    print(request_data)
     offer = request_data['offer']
     applications = request_data['applications']
 
-    cvs = [(application['user']['cvPath'], application['user']['_id'])
+    cvs = [(application['user']['cvPath'], application['user']['id'])
            for application in applications]
 
     cvs_content = []
