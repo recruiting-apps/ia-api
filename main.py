@@ -1,7 +1,6 @@
-from flask import Flask
+from flask import Flask, request
 from flask_cors import CORS
 from config import PORT
-from flask import request
 
 from src.utils import download_file, remove_file, sort_applications
 from src.pdf.read_pdf import get_content
@@ -20,9 +19,10 @@ def helloWorld():
 
 
 @app.route('/find-better-applicant', methods=['POST'])
-def index(request):
-    offer = request.json['offer']
-    applications = request.json['applications']
+def index():
+    request_data = request.get_json()
+    offer = request_data['offer']
+    applications = request_data['applications']
 
     cvs = [(application['user']['cvPath'], application['user']['_id'])
            for application in applications]
