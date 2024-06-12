@@ -8,17 +8,17 @@ from src.tokenize.tokenize_pdf import tokenize, generate_tfidf_matrix
 from src.ai.svm_predict_skills import train_model_with_csv
 from src.ai.calculate_similarity import calculate_similarity
 
-app = Flask(__name__)
+application = Flask(__name__)
 prediction_model = train_model_with_csv('')
-CORS(app)
+CORS(application)
 
 
-@app.route('/')
+@application.route('/')
 def helloWorld():
     return 'Hello World!'
 
 
-@app.route('/find-better-applicant', methods=['POST'])
+@application.route('/find-better-applicant', methods=['POST'])
 def index():
     request_data = request.get_json()
     print(request_data)
@@ -30,7 +30,7 @@ def index():
 
     cvs_content = []
 
-    root_path = app.root_path
+    root_path = application.root_path
 
     for cv_path, cv_id in cvs:
         os_path = f'{root_path}\\src\\pdf-download\\{cv_id}.pdf'
@@ -61,4 +61,4 @@ def index():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=PORT)
+    application.run(debug=True, port=PORT)
