@@ -1,61 +1,53 @@
-import spacy
+from flask import Flask, request
+from flask_cors import CORS
 
 from src.ai.cosine_similarity import calculate_similarity, generate_vectors
-from src.ai.svm_model import get_svm_model
-from src.tokenize.tokenize_text import preprocess_text
-from src.utils import download_text_cv_from_url, get_skills_from_cv
+from src.ai.svm_model import get_svm_model, preprocess_text
+from src.utils import get_skills_from_cv
 
-nlp = spacy.load('en_core_web_sm')
+from config import PORT
+
+app = Flask(__name__)
+CORS(app)
+
+model, vectorizer = get_svm_model()
 
 
-def test_model_prediction():
-    model, vectorizer = get_svm_model()
-    cvs = [{
-        "id": 1,
-        "url": "https://firebasestorage.googleapis.com/v0/b/recruitingapp-8355f.appspot.com/o/RENATO%20ARREDONDO%20CV.pdf?alt=media&token=f8519829-28f4-4ee7-96f2-ed25330e3ba8"
-    },
-        {
-            "id": 2,
-            "url": "https://firebasestorage.googleapis.com/v0/b/recruitingapp-8355f.appspot.com/o/RENATO%20ARREDONDO%20CV.pdf?alt=media&token=f8519829-28f4-4ee7-96f2-ed25330e3ba8"
-    },
-        {
-            "id": 1,
-            "url": "https://firebasestorage.googleapis.com/v0/b/recruitingapp-8355f.appspot.com/o/RENATO%20ARREDONDO%20CV.pdf?alt=media&token=f8519829-28f4-4ee7-96f2-ed25330e3ba8"
-    },
-        {
-            "id": 2,
-            "url": "https://firebasestorage.googleapis.com/v0/b/recruitingapp-8355f.appspot.com/o/RENATO%20ARREDONDO%20CV.pdf?alt=media&token=f8519829-28f4-4ee7-96f2-ed25330e3ba8"
-    }]
+def sort_applications(applications, similarities):
+    sorted_applications = sorted(
+        zip(applications, similarities), key=lambda x: x[1], reverse=True)
+
+    return [application[0] for application in sorted_applications]
+
+
+@app.route('/')
+def hello_world():
+    return 'Hello, World!'
+
+
+@app.route('/find-better-applicant', methods=['POST'])
+def find_better_applicant():
+    request_data = request.get_json()
+
+    offer = request_data['offer']
+    applications = request_data['applications']
+
+    cvs = [application['user']['cvPath']
+           for application in applications]
 
     cv_skills = [get_skills_from_cv(
-        model, vectorizer, cv["url"]) for cv in cvs]
+        model, vectorizer, cv_path) for cv_path in cvs]
 
-    job_offer = """
-        Estamos en búsqueda de un Desarrollador Web con experiencia en React para unirse a nuestro equipo de tecnología. 
-        El candidato ideal será responsable de crear y mantener aplicaciones web de alto rendimiento, trabajando de cerca con 
-        diseñadores y desarrolladores backend para entregar soluciones escalables y eficientes.
+    job_offer_tokens = ' '.join(preprocess_text(offer))
+    job_offer_tfidf, cvs_tfidf = generate_vectors(job_offer_tokens, cv_skills)
 
-        Requisitos:
-        - Experiencia demostrable de al menos 2 años en desarrollo web utilizando React.
-        - Conocimientos sólidos en TypeScript, HTML, CSS, y TailwindCSS.
-        - Experiencia con herramientas de construcción como Webpack, Babel y npm.
-        - Conocimientos en el manejo de sistemas de control de versiones como Git.
-        - Familiaridad con el manejo del estado de la aplicación usando Redux o Context API.
-        - Experiencia en el desarrollo responsive y cross-browser.
-        - Conocimientos en lenguajes backend como Python y Java.
-    """
+    similarities = calculate_similarity(job_offer_tfidf, cvs_tfidf)
 
-    job_offer_tokens = ' '.join(preprocess_text(job_offer))
-    job_offer_tfidf, cv1_tfidf = generate_vectors(job_offer_tokens, cv_skills)
+    sorted_applications = sorted(
+        zip(applications, similarities), key=lambda x: x[1], reverse=True)
 
-    similarities = calculate_similarity(job_offer_tfidf, cv1_tfidf)
-
-    results = [{"cv_id": cvs[i]["id"], "similarity": similarities[i]}
-               for i in range(len(similarities))]
-
-    print(results)
+    return [application_order[0] for application_order in sorted_applications]
 
 
-if __name__ == "__main__":
-    print("main")
-    test_model_prediction()
+if __name__ == '__main__':
+    app.run(debug=True, port=PORT)
