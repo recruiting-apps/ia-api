@@ -8,6 +8,7 @@ from sklearn import svm
 from sklearn.metrics import accuracy_score
 from nltk.corpus import stopwords
 import string
+import os
 
 nltk.download('stopwords')
 nlp = spacy.load('es_core_news_sm')
@@ -42,7 +43,9 @@ def calculate_better_configuration(model, X_train, y_train):
 
 
 def train_svm():
-    data = pd.read_csv("skills_dataset.csv")
+    file_path = os.path.join(os.path.dirname(
+        __file__), "src/ai/skills_dataset.csv")
+    data = pd.read_csv(file_path)
 
     X = data["text"].apply(preprocess_text)
     y = data["is_skill"]
